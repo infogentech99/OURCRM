@@ -29,7 +29,7 @@ function Register() {
     }
 
     try {
-      await axios.post('https://ourcrm.onrender.com/api/auth/register', {
+      await axios.post('https://ourcrm-o8vx.onrender.com//api/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
