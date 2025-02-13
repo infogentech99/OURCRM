@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// Create axios instance with custom config
+const api = axios.create({
+  baseURL: 'https://ourcrm-o8vx.onrender.com/api',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 const LeadsManagement = () => {
   const [leads, setLeads] = useState([]);
@@ -34,48 +44,105 @@ const LeadsManagement = () => {
     facebookUrl: ''
   });
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/leads', {
+      
+      // First try localhost
+      try {
+        const localResponse = await axios.get('http://localhost:5000/api/leads', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (localResponse.data) {
+          setLeads(localResponse.data);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+      } catch (localError) {
+        console.log('Local server not available, trying production...');
+      }
+
+      // If localhost fails, try production server
+      const response = await api.get('/leads', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      if (!response.ok) throw new Error('Failed to fetch leads');
-      const data = await response.json();
-      setLeads(data);
-    } catch (err) {
-      setError(err.message);
+      setLeads(response.data);
+      setError(null);
+    } catch (error) {
+      console.error('Fetch leads error:', error);
+      if (error.code === 'ECONNABORTED') {
+        setError('Server is taking longer than usual. Please try again.');
+      } else if (error.response) {
+        setError(error.response.data?.message || 'Failed to fetch leads');
+      } else if (error.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // First try localhost
+      try {
+        const url = currentLead 
+          ? `http://localhost:5000/api/leads/${currentLead._id}`
+          : 'http://localhost:5000/api/leads';
+        
+        const localResponse = await axios({
+          method: currentLead ? 'PUT' : 'POST',
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          data: formData
+        });
+        
+        if (localResponse.data) {
+          setModalVisible(false);
+          fetchLeads();
+          resetForm();
+          return;
+        }
+      } catch (localError) {
+        console.log('Local server not available, trying production...');
+      }
+
+      // If localhost fails, try production server
       const url = currentLead 
-        ? `http://localhost:5000/api/leads/${currentLead._id}`
-        : 'http://localhost:5000/api/leads';
+        ? `/leads/${currentLead._id}`
+        : '/leads';
       
-      const response = await fetch(url, {
+      const response = await api({
         method: currentLead ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
+        url,
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        data: formData
       });
 
-      if (!response.ok) throw new Error('Failed to save lead');
-      setModalVisible(false);
-      fetchLeads();
-      resetForm();
-    } catch (err) {
-      setError(err.message);
+      if (response.data) {
+        setModalVisible(false);
+        fetchLeads();
+        resetForm();
+      }
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data?.message || 'Failed to save lead');
+      } else if (error.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     }
   };
 
@@ -83,14 +150,32 @@ const LeadsManagement = () => {
     if (!window.confirm('Are you sure you want to delete this lead?')) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/leads/${id}`, {
-        method: 'DELETE',
+      // First try localhost
+      try {
+        const localResponse = await axios.delete(`http://localhost:5000/api/leads/${id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (localResponse.data) {
+          fetchLeads();
+          return;
+        }
+      } catch (localError) {
+        console.log('Local server not available, trying production...');
+      }
+
+      // If localhost fails, try production server
+      await api.delete(`/leads/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      if (!response.ok) throw new Error('Failed to delete lead');
       fetchLeads();
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data?.message || 'Failed to delete lead');
+      } else if (error.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     }
   };
 
@@ -138,13 +223,24 @@ const LeadsManagement = () => {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 mb-4 rounded">
-          {error}
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg mb-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-4">Loading...</div>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white">
