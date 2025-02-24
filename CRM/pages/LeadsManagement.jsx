@@ -94,15 +94,20 @@ const LeadsManagement = () => {
   };
 
   const cleanExcelData = (data) => {
+    if (!Array.isArray(data) || data.length === 0) {
+      console.error("❌ Error: No data found in uploaded file.");
+      return [];
+    }
+  
     return data
-      .filter(lead => lead["Email"] && lead["Email"] !== "N/A")  // 🚀 Remove invalid emails
+      .filter(lead => lead["Full Name"] && lead["Apollo Id"])  // ✅ Ensure required fields exist
       .map(lead => ({
         apolloId: lead["Apollo Id"] || "N/A",
         fullName: lead["Full Name"] || "N/A",
         linkedinUrl: lead["Linkedin Url"] || "N/A",
         firstName: lead["First Name"] || "N/A",
         lastName: lead["Last Name"] || "N/A",
-        email: lead["Email"] && lead["Email"] !== "N/A" ? lead["Email"] : "", // 🚀 Set empty instead of "N/A"
+        email: lead["Email"] && lead["Email"] !== "N/A" ? lead["Email"] : "", // ✅ Fix "N/A" emails
         emailStatus: lead["Email Status"] || "N/A",
         jobTitle: lead["Job Title"] || "N/A",
         companyName: lead["Company Name"] || "N/A",
@@ -123,18 +128,27 @@ const LeadsManagement = () => {
         twitterUrl: lead["Twitter Url"] || "N/A",
         facebookUrl: lead["Facebook Url"] || "N/A"
       }));
-  };  
+  };
+  
   
   const handleImportSubmit = async () => {
     try {
       setLoading(true);
       setError(null);
   
-      // Remove empty columns and fix field names
+      console.log("📌 Raw importData from Excel:", importData);
+  
+      // Format the data
       const formattedLeads = cleanExcelData(importData);
   
+      console.log("📌 Formatted Leads Data:", formattedLeads);
+  
+      if (formattedLeads.length === 0) {
+        throw new Error("No valid leads found. Please check your file.");
+      }
+  
       console.log("✅ Sending API request to:", `${api.baseURL}/leads/bulk`);
-      console.log("📌 Payload:", JSON.stringify({ leads: formattedLeads }, null, 2));
+      console.log("📌 Final Payload:", JSON.stringify({ leads: formattedLeads }, null, 2));
   
       const response = await fetch(`${api.baseURL}/leads/bulk`, {
         method: 'POST',
@@ -163,6 +177,7 @@ const LeadsManagement = () => {
       setLoading(false);
     }
   };
+  
   
 
   const handleSubmit = async (e) => {
