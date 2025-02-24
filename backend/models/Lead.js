@@ -6,7 +6,7 @@ const LeadSchema = new mongoose.Schema({
   linkedinUrl: { type: String, default: "N/A" },
   firstName: { type: String, default: "N/A" },
   lastName: { type: String, default: "N/A" },
-  email: { type: String, required: false, unique: false },  // ⬅️ Removed `unique: true`
+  email: { type: String, required: false, unique: false },
   emailStatus: { type: String, default: "N/A" },
   jobTitle: { type: String, default: "N/A" },
   companyName: { type: String, default: "N/A" },

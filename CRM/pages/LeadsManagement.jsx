@@ -94,34 +94,36 @@ const LeadsManagement = () => {
   };
 
   const cleanExcelData = (data) => {
-    return data.map(lead => ({
-      apolloId: lead["Apollo Id"] || "N/A",
-      fullName: lead["Full Name"] || "N/A",
-      linkedinUrl: lead["Linkedin Url"] || "N/A",
-      firstName: lead["First Name"] || "N/A",
-      lastName: lead["Last Name"] || "N/A",
-      email: lead["Email"] || "N/A",
-      emailStatus: lead["Email Status"] || "N/A",
-      jobTitle: lead["Job Title"] || "N/A",
-      companyName: lead["Company Name"] || "N/A",
-      companyWebsite: lead["Company Website"] || "N/A",
-      city: lead["City"] || "N/A",
-      state: lead["State"] || "N/A",
-      country: lead["Country"] || "N/A",
-      industry: lead["Industry"] || "N/A",
-      keywords: lead["Keywords"] || "N/A",
-      employees: lead["Employees"] ? parseInt(lead["Employees"]) : 0,
-      companyCity: lead["Company City"] || "N/A",
-      companyState: lead["Company State"] || "N/A",
-      companyCountry: lead["Company Country"] || "N/A",
-      companyLinkedinUrl: lead["Company Linkedin Url"] || "N/A",
-      companyTwitterUrl: lead["Company Twitter Url"] || "N/A",
-      companyFacebookUrl: lead["Company Facebook Url"] || "N/A",
-      companyPhoneNumbers: lead["Company Phone Numbers"] || "N/A",
-      twitterUrl: lead["Twitter Url"] || "N/A",
-      facebookUrl: lead["Facebook Url"] || "N/A"
-    }));
-  };
+    return data
+      .filter(lead => lead["Email"] && lead["Email"] !== "N/A")  // 🚀 Remove invalid emails
+      .map(lead => ({
+        apolloId: lead["Apollo Id"] || "N/A",
+        fullName: lead["Full Name"] || "N/A",
+        linkedinUrl: lead["Linkedin Url"] || "N/A",
+        firstName: lead["First Name"] || "N/A",
+        lastName: lead["Last Name"] || "N/A",
+        email: lead["Email"] && lead["Email"] !== "N/A" ? lead["Email"] : "", // 🚀 Set empty instead of "N/A"
+        emailStatus: lead["Email Status"] || "N/A",
+        jobTitle: lead["Job Title"] || "N/A",
+        companyName: lead["Company Name"] || "N/A",
+        companyWebsite: lead["Company Website"] || "N/A",
+        city: lead["City"] || "N/A",
+        state: lead["State"] || "N/A",
+        country: lead["Country"] || "N/A",
+        industry: lead["Industry"] || "N/A",
+        keywords: lead["Keywords"] || "N/A",
+        employees: lead["Employees"] ? parseInt(lead["Employees"]) : 0,
+        companyCity: lead["Company City"] || "N/A",
+        companyState: lead["Company State"] || "N/A",
+        companyCountry: lead["Company Country"] || "N/A",
+        companyLinkedinUrl: lead["Company Linkedin Url"] || "N/A",
+        companyTwitterUrl: lead["Company Twitter Url"] || "N/A",
+        companyFacebookUrl: lead["Company Facebook Url"] || "N/A",
+        companyPhoneNumbers: lead["Company Phone Numbers"] || "N/A",
+        twitterUrl: lead["Twitter Url"] || "N/A",
+        facebookUrl: lead["Facebook Url"] || "N/A"
+      }));
+  };  
   
   const handleImportSubmit = async () => {
     try {
