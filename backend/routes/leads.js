@@ -30,19 +30,23 @@ router.post(
 // BULK INSERT: POST /api/leads/bulk (Import Multiple Leads)
 router.post('/bulk', async (req, res) => {
   try {
-    const { leads } = req.body; // Extract leads array from request body
+    const { leads } = req.body;
 
     if (!Array.isArray(leads) || leads.length === 0) {
+      console.error("❌ ERROR: Invalid leads data received:", JSON.stringify(req.body, null, 2));
       return res.status(400).json({ message: 'Invalid leads data' });
     }
 
-    // Log incoming leads
-    console.log("Incoming Leads Data:", leads);
+    // Log each lead before inserting
+    console.log("✅ Incoming Leads Data:", JSON.stringify(leads, null, 2));
 
+    // Insert leads into MongoDB
     const insertedLeads = await Lead.insertMany(leads);
+    
+    console.log("✅ Leads inserted successfully:", insertedLeads);
     res.status(201).json({ message: 'Leads imported successfully', insertedLeads });
   } catch (error) {
-    console.error('Error importing leads:', error); // Log the actual error
+    console.error("❌ ERROR IMPORTING LEADS:", error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
