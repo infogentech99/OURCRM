@@ -36,17 +36,13 @@ router.post('/bulk', async (req, res) => {
       return res.status(400).json({ message: 'Invalid leads data' });
     }
 
-    // Validate required fields for each lead
-    for (let lead of leads) {
-      if (!lead.apolloId || !lead.fullName) {
-        return res.status(400).json({ message: 'Apollo ID and Full Name are required for all leads' });
-      }
-    }
+    // Log incoming leads
+    console.log("Incoming Leads Data:", leads);
 
-    const insertedLeads = await Lead.insertMany(leads); // Insert into MongoDB
+    const insertedLeads = await Lead.insertMany(leads);
     res.status(201).json({ message: 'Leads imported successfully', insertedLeads });
   } catch (error) {
-    console.error('Error importing leads:', error);
+    console.error('Error importing leads:', error); // Log the actual error
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

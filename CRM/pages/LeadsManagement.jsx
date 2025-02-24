@@ -93,32 +93,33 @@ const LeadsManagement = () => {
     }
   };
 
-  const handleImportSubmit = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-  
-      const response = await fetch(`${api.baseURL}/leads/bulk`, {
-        method: 'POST',
-        headers: api.headers,
-        body: JSON.stringify({ leads: importData }) // Send imported data to backend
-      });
-  
-      if (!response.ok) throw new Error('Failed to import leads');
-      
-      const result = await response.json(); // Get response from the server
-      console.log('Leads Imported:', result);
-  
-      await fetchLeads(); // Refresh leads from MongoDB
-      setImportMode(false);
-      setImportData([]); // Clear imported data after saving
-    } catch (err) {
-      setError('Failed to import leads: ' + err.message);
-    } finally {
-      setLoading(false);
+// BULK INSERT: POST /api/leads/bulk (Import Multiple Leads)
+router.post('/bulk', async (req, res) => {
+  try {
+    const { leads } = req.body; // Extract leads array from request body
+
+    if (!Array.isArray(leads) || leads.length === 0) {
+      return res.status(400).json({ message: 'Invalid leads data' });
     }
-  };
-  
+
+    // Validate required fields for each lead
+    for (let lead of leads) {
+      if (!lead.apolloId || !lead.fullName) {
+        return res.status(400).json({ message: 'Apollo ID and Full Name are required for all leads' });
+      }
+    }
+
+    // Log incoming leads
+    console.log("Incoming Leads Data:", leads);
+
+    const insertedLeads = await Lead.insertMany(leads);
+    res.status(201).json({ message: 'Leads imported successfully', insertedLeads });
+  } catch (error) {
+    console.error('Error importing leads:', error); // Log the actual error
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
