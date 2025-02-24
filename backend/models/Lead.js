@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const LeadSchema = new mongoose.Schema({
-  apolloId: { type: String, default: "N/A" },
-  fullName: { type: String, default: "N/A" },
+  apolloId: { type: String, required: true },
+  fullName: { type: String, required: true },
   linkedinUrl: { type: String, default: "N/A" },
   firstName: { type: String, default: "N/A" },
   lastName: { type: String, default: "N/A" },
-  email: { type: String, default: "N/A" },
+  email: { type: String, required: false, unique: false },
   emailStatus: { type: String, default: "N/A" },
   jobTitle: { type: String, default: "N/A" },
   companyName: { type: String, default: "N/A" },
