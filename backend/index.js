@@ -12,6 +12,7 @@ require('dotenv').config();
 const Lead = require('./models/Lead');
 const User = require('./models/User');
 const authenticateToken = require('./middleware/authenticateToken');
+const leadRoutes = require('./routes/leads');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -107,6 +108,8 @@ app.post(
     }
   }
 );
+
+app.use('/api/leads', leadRoutes);
 
 // 5. Update a lead by ID (Protected)
 app.put('/api/leads/:id', authenticateToken, async (req, res) => {
