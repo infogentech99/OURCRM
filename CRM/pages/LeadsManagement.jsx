@@ -93,28 +93,75 @@ const LeadsManagement = () => {
     }
   };
 
+  const cleanExcelData = (data) => {
+    return data.map(lead => ({
+      apolloId: lead["Apollo Id"] || "N/A",
+      fullName: lead["Full Name"] || "N/A",
+      linkedinUrl: lead["Linkedin Url"] || "N/A",
+      firstName: lead["First Name"] || "N/A",
+      lastName: lead["Last Name"] || "N/A",
+      email: lead["Email"] || "N/A",
+      emailStatus: lead["Email Status"] || "N/A",
+      jobTitle: lead["Job Title"] || "N/A",
+      companyName: lead["Company Name"] || "N/A",
+      companyWebsite: lead["Company Website"] || "N/A",
+      city: lead["City"] || "N/A",
+      state: lead["State"] || "N/A",
+      country: lead["Country"] || "N/A",
+      industry: lead["Industry"] || "N/A",
+      keywords: lead["Keywords"] || "N/A",
+      employees: lead["Employees"] ? parseInt(lead["Employees"]) : 0,
+      companyCity: lead["Company City"] || "N/A",
+      companyState: lead["Company State"] || "N/A",
+      companyCountry: lead["Company Country"] || "N/A",
+      companyLinkedinUrl: lead["Company Linkedin Url"] || "N/A",
+      companyTwitterUrl: lead["Company Twitter Url"] || "N/A",
+      companyFacebookUrl: lead["Company Facebook Url"] || "N/A",
+      companyPhoneNumbers: lead["Company Phone Numbers"] || "N/A",
+      twitterUrl: lead["Twitter Url"] || "N/A",
+      facebookUrl: lead["Facebook Url"] || "N/A"
+    }));
+  };
+  
   const handleImportSubmit = async () => {
     try {
       setLoading(true);
       setError(null);
-
+  
+      // Remove empty columns and fix field names
+      const formattedLeads = cleanExcelData(importData);
+  
+      console.log("✅ Sending API request to:", `${api.baseURL}/leads/bulk`);
+      console.log("📌 Payload:", JSON.stringify({ leads: formattedLeads }, null, 2));
+  
       const response = await fetch(`${api.baseURL}/leads/bulk`, {
         method: 'POST',
-        headers: api.headers,
-        body: JSON.stringify({ leads: importData })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({ leads: formattedLeads })
       });
-
-      if (!response.ok) throw new Error('Failed to import leads');
-      
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(`Failed to import leads: ${errorMessage}`);
+      }
+  
+      const result = await response.json();
+      console.log('✅ Leads Imported:', result);
+  
       await fetchLeads();
       setImportMode(false);
       setImportData([]);
     } catch (err) {
+      console.error("❌ Import Error:", err);
       setError('Failed to import leads: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
