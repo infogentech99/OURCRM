@@ -97,24 +97,28 @@ const LeadsManagement = () => {
     try {
       setLoading(true);
       setError(null);
-
+  
       const response = await fetch(`${api.baseURL}/leads/bulk`, {
         method: 'POST',
         headers: api.headers,
-        body: JSON.stringify({ leads: importData })
+        body: JSON.stringify({ leads: importData }) // Send imported data to backend
       });
-
+  
       if (!response.ok) throw new Error('Failed to import leads');
       
-      await fetchLeads();
+      const result = await response.json(); // Get response from the server
+      console.log('Leads Imported:', result);
+  
+      await fetchLeads(); // Refresh leads from MongoDB
       setImportMode(false);
-      setImportData([]);
+      setImportData([]); // Clear imported data after saving
     } catch (err) {
       setError('Failed to import leads: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
