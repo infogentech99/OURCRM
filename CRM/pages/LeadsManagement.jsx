@@ -40,7 +40,7 @@ const LeadsManagement = () => {
 
   // Create API configuration
   const api = {
-    baseURL: 'http://localhost:5000/api',
+    baseURL: 'https://ourcrm-o8vx.onrender.com/api',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${localStorage.getItem('token')}`
