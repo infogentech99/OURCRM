@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const LeadSchema = new mongoose.Schema({
-  apolloId: { type: String, required: false },
-  fullName: { type: String, required: false },
+  apolloId: { type: String, required: true },
+  fullName: { type: String, required: true },
   linkedinUrl: { type: String, default: "N/A" },
   firstName: { type: String, default: "N/A" },
   lastName: { type: String, default: "N/A" },
-  email: { type: String, required: false },
+  email: { type: String, required: false, unique: false },  // ⬅️ Removed `unique: true`
   emailStatus: { type: String, default: "N/A" },
   jobTitle: { type: String, default: "N/A" },
   companyName: { type: String, default: "N/A" },
@@ -26,6 +26,6 @@ const LeadSchema = new mongoose.Schema({
   companyPhoneNumbers: { type: String, default: "N/A" },
   twitterUrl: { type: String, default: "N/A" },
   facebookUrl: { type: String, default: "N/A" }
-}, { strict: false }); // Allow extra fields
+}, { strict: false });
 
 module.exports = mongoose.model('Lead', LeadSchema);
